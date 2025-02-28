@@ -1,9 +1,14 @@
+# Utiliser une image Java 17
 FROM openjdk:17-jdk-slim
 
+# Définir le répertoire de travail
 WORKDIR /app
 
-COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+# Copier le JAR généré dans le conteneur
+COPY target/app.jar app.jar
 
+# Exposer le port (change si nécessaire)
 EXPOSE 8080
 
-CMD ["java", "-jar", "app.jar"]
+# Lancer l'application
+ENTRYPOINT ["java", "-jar", "app.jar"]
