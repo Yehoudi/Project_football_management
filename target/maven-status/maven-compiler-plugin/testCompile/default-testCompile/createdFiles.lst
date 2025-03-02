@@ -1,0 +1,4 @@
+com\matawan\utils\PasswordHasherTest.class
+com\matawan\FootballManagmentApplicationTests.class
+com\matawan\controller\TeamControllerTest.class
+com\matawan\services\TeamServiceTest.class
