@@ -1,126 +1,147 @@
-# Football Management API
+# **Football Management API**
 
-## Introduction
-
-L'application Football Management API permet de gérer l'équipe de football de l'OGC Nice et leurs joueurs grâce à une API REST.
-
----
-
-## Fonctionnalités
-
-- Gestion des équipes : création, mise à jour, suppression, récupération.
-- Gestion des joueurs : ajout, mise à jour, suppression.
-- Pagination et tri des équipes.
+## **1. Introduction**
+Cette API permet de gérer les équipes de football, les joueurs et les compétitions. Elle est développée avec **Spring Boot**, **PostgreSQL** et sécurisée avec **Spring Security + JWT**.
 
 ---
 
-## Installation
-
-### **Prérequis**
-
-1. **Java 17+**
-2. **Maven 3.6+**
-3. **PostgreSQL** installé et configuré.
+## **2. Prérequis**
+Avant d'exécuter le projet, assurez-vous d'avoir installé :
+- **JDK 17**
+- **PostgreSQL**
+- **Maven**
+- **Postman** (optionnel pour tester l'API)
 
 ---
 
-### **1. Configuration de la Base de Données**
+## **3. Installation et Configuration**
 
-#### **1.1 Créez la Base PostgreSQL**
+### **3.1 Cloner le projet**
+```bash
+git clone https://github.com/votre-repository.git
+cd football-management
+```
 
-1. Ouvrez un terminal ou un outil comme pgAdmin, puis connectez-vous à PostgreSQL :
+### **3.2 Configuration de la base de données**
+Modifiez le fichier **`application.properties`** pour pointer vers votre base PostgreSQL :
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/nice_football
+spring.datasource.username=postgres
+spring.datasource.password=1234
+spring.datasource.driver-class-name=org.postgresql.Driver
 
-   ```bash
-   psql -U votre_nom_utilisateur
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+```
+Assurez-vous que PostgreSQL est en cours d'exécution et que la base `nice_football` existe.
+
+---
+
+### **3.3 Installation des dépendances et démarrage du projet**
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+L'application sera accessible sur **`http://localhost:8080`**.
+
+---
+
+## **4. Endpoints de l'API**
+
+### **4.1 Authentification**
+| Méthode | Endpoint               | Description                       | Authentification |
+|---------|------------------------|-----------------------------------|------------------|
+| `POST`  | `/api/auth/login`      | Authentifie un utilisateur       | ❌              |
+
+### **4.2 Gestion des équipes**
+| Méthode | Endpoint               | Description                       | Authentification |
+|---------|------------------------|-----------------------------------|------------------|
+| `GET`   | `/api/teams`           | Liste toutes les équipes         | ✅              |
+| `POST`  | `/api/teams`           | Crée une nouvelle équipe         | ✅              |
+| `PUT`   | `/api/teams/{id}`      | Met à jour une équipe            | ✅              |
+| `DELETE`| `/api/teams/{id}`      | Supprime une équipe              | ✅              |
+
+### **4.3 Gestion des joueurs**
+| Méthode | Endpoint               | Description                       | Authentification |
+|---------|------------------------|-----------------------------------|------------------|
+| `GET`   | `/api/players`         | Liste tous les joueurs           | ✅              |
+| `POST`  | `/api/players`         | Ajoute un nouveau joueur         | ✅              |
+| `PUT`   | `/api/players/{id}`    | Met à jour un joueur             | ✅              |
+| `DELETE`| `/api/players/{id}`    | Supprime un joueur               | ✅              |
+
+---
+
+## **5. Sécurité et Authentification**
+
+L'API est sécurisée avec **Spring Security** et utilise un système d'authentification basé sur **JWT (JSON Web Token)**.
+
+### **5.1 Création d'un utilisateur**
+Avant de pouvoir s'authentifier, un utilisateur doit être créé dans la base de données avec un mot de passe hashé.
+
+#### **1. Générer un mot de passe hashé**
+```java
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public class PasswordHasher {
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String rawPassword = "votreMotDePasse";
+        String hashedPassword = encoder.encode(rawPassword);
+        System.out.println("Hashed Password: " + hashedPassword);
+    }
+}
+```
+Remplacez `"votreMotDePasse"` par le mot de passe souhaité, puis exécutez ce code pour obtenir sa version hashée.
+
+#### **2. Ajouter l'utilisateur dans la base**
+```sql
+INSERT INTO users (username, password, enabled) VALUES ('yehoudi', '$2a$10$exempleDeHash', true);
+INSERT INTO user_roles (user_id, roles) VALUES (1, 'USER');
+```
+Assurez-vous que l'ID de l'utilisateur correspond bien au `user_id` dans `user_roles`.
+
+---
+
+### **5.2 Authentification via JWT**
+Pour récupérer un **token JWT**, effectuez une requête **POST** sur `/api/auth/login` avec le corps suivant :
+```json
+{
+    "username": "yehoudi",
+    "password": "votreMotDePasse"
+}
+```
+Si les informations sont correctes, un **token JWT** sera renvoyé dans la réponse.
+
+---
+
+### **5.3 Accès aux endpoints sécurisés**
+Une fois le token récupéré, ajoutez-le aux requêtes des endpoints protégés via l’en-tête **Authorization** :
+```http
+Authorization: Bearer VOTRE_TOKEN
+```
+Exemple avec **Postman** :
+1. Aller dans **Headers**  
+2. Ajouter un **Authorization** avec la valeur :  
    ```
-
-2. Créez une base de données nommée **nice_football** :
-
-   ```sql
-   CREATE DATABASE nice_football;
+   Bearer VOTRE_TOKEN
    ```
+3. Envoyer la requête à un endpoint sécurisé (`/api/teams` par exemple)
 
-3. Créez un utilisateur dédié et attribuez-lui les droits sur cette base :
+---
 
-   ```sql
-   CREATE USER votre_nom_utilisateur WITH PASSWORD 'votre_mot_de_passe';
-   GRANT ALL PRIVILEGES ON DATABASE nice_football TO votre_nom_utilisateur;
-   ```
+## **6. Notes Importantes**
+- Tous les endpoints sont sécurisés sauf `/api/auth/login`.
+- Sans un **JWT valide**, les requêtes aux endpoints protégés renverront un **403 Forbidden**.
+- Assurez-vous que la base de données contient des utilisateurs et rôles valides avant de tester.
 
-#### **1.2 Importez la Structure et les Données**
+---
 
-    Le fichier nice_football.sql contient la structure de la base ainsi que des
-    données de test. Voici comment l'importer :
+## **7. Contribution**
+Les contributions sont les bienvenues ! Forkez le projet et soumettez une PR.
 
-1. Téléchargez le fichier SQL fourni avec le projet.
+---
 
-2. Importez-le dans la base nice_football en exécutant cette commande :
+## **8. Auteurs**
+- **Yehoudi Vincent**
 
-   ```bash
-   psql -U votre_nom_utilisateur -d nice_football -f /chemin/vers/nice_football.sql
-   ```
-
-3. Vérifiez que les tables et les données sont correctement créées :
-
-   a) Listez les tables :
-
-   ```sql
-   \dt
-   ```
-
-   b) Vérifiez les données des équipes :
-
-   ```sql
-   SELECT * FROM team;
-   ```
-
-   b) Vérifiez les joueurs associés aux équipes :
-
-   ```sql
-    SELECT * FROM player;
-   ```
-
-### **1.3 Configurez les Informations de Connexion** :
-
-Une fois la base configurée, mettez à jour le fichier **application.properties** avec vos propres informations :
-
-    ```properties
-    spring.datasource.url=jdbc:postgresql://localhost:5432/nice_football
-    spring.datasource.username=votre_nom_utilisateur
-    spring.datasource.password=votre_mot_de_passe
-    ```
-
-#### Note : Sans cette configuration, l'application ne pourra pas se connecter à la base.
-
-### 2. Compilez et Lancez le Projet
-
-#### 2.1. Compilez le projet avec Maven :
-
-    ```bash
-    mvn clean install
-    ```
-
-#### 2.2. Lancez l'application :
-
-    ```bash
-    mvn spring-boot:run
-    ```
-
-### 3. Endpoints de l'API :
-
-    - GET /api/teams : Récupère la liste paginée des équipes.
-    - POST /api/teams : Crée une nouvelle équipe avec des joueurs.
-    - PUT /api/teams/{id} : Met à jour une équipe existante.
-    - DELETE /api/teams/{id} : Supprime une équipe.
-
-### 4. Architecture
-
-    - Back-end : Java avec Spring Boot.
-    - Base de données : PostgreSQL.
-    - Gestion des dépendances : Maven.
-
-### Pour plus de détails, y compris une explication approfondie de l'architecture, des choix techniques et des exemples d'utilisation de l'API, veuillez consulter la documentation complète disponible dans le fichier _documentation.pdf_.
-
-## Auteur
-
-Yehoudi VINCENT
