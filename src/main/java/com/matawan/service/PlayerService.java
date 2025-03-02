@@ -5,16 +5,26 @@ import com.matawan.repository.PlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Service pour la gestion des joueurs.
- * Contient des méthodes pour mettre à jour et supprimer les joueurs dans la
- * base de données.
+ * Contient des méthodes pour récupérer, mettre à jour et supprimer les joueurs dans la base de données.
  */
 @Service
 public class PlayerService {
 
     @Autowired
     private PlayerRepository playerRepository;
+
+    /**
+     * Récupère tous les joueurs.
+     * 
+     * @return une liste de tous les joueurs enregistrés
+     */
+    public List<Player> getAllPlayers() {
+        return playerRepository.findAll();
+    }
 
     /**
      * Met à jour un joueur existant.

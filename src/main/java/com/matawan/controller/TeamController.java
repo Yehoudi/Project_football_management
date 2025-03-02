@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Contrôleur pour la gestion des équipes et des joueurs.
  * Fournit des points de terminaison pour récupérer, ajouter, modifier et supprimer des équipes et des joueurs.
@@ -93,6 +95,21 @@ public class TeamController {
     public ResponseEntity<Void> deleteTeam(@PathVariable Long id) {
         teamService.deleteTeam(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Récupère tous les joueurs.
+     * @return une liste de tous les joueurs enregistrés
+     */
+    @Operation(summary = "Lister tous les joueurs", description = "Retourne la liste de tous les joueurs.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Liste des joueurs récupérée avec succès"),
+        @ApiResponse(responseCode = "500", description = "Erreur serveur")
+    })
+    @GetMapping("/players")
+    public ResponseEntity<List<Player>> getAllPlayers() {
+        List<Player> players = playerService.getAllPlayers();
+        return ResponseEntity.ok(players);
     }
 
     /**
