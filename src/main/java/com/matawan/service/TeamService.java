@@ -63,4 +63,10 @@ public class TeamService {
     public void deleteTeam(Long id) {
         teamRepository.deleteById(id);
     }
+
+    public Team getTeamById(Long id) {
+        return teamRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Équipe non trouvée avec l'ID : " + id));
+    }
+    
 }

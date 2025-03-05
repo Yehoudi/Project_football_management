@@ -49,4 +49,10 @@ public class PlayerService {
     public void deletePlayer(Long id) {
         playerRepository.deleteById(id);
     }
+
+    public Player getPlayerById(Long id) {
+        return playerRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Joueur non trouvé avec l'ID : " + id));
+    }
+    
 }

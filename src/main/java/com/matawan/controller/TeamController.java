@@ -112,6 +112,30 @@ public class TeamController {
         return ResponseEntity.ok(players);
     }
 
+
+    @Operation(summary = "Récupérer une équipe par ID", description = "Retourne une équipe spécifique.")
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Équipe trouvée"),
+    @ApiResponse(responseCode = "404", description = "Équipe non trouvée")
+})
+@GetMapping("/{teamId}")
+public ResponseEntity<Team> getTeamById(@PathVariable Long teamId) {
+    Team team = teamService.getTeamById(teamId);
+    return ResponseEntity.ok(team);
+}
+
+@Operation(summary = "Récupérer un joueur par ID", description = "Retourne un joueur spécifique.")
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Joueur trouvé"),
+    @ApiResponse(responseCode = "404", description = "Joueur non trouvé")
+})
+@GetMapping("/players/{playerId}")
+public ResponseEntity<Player> getPlayerById(@PathVariable Long playerId) {
+    Player player = playerService.getPlayerById(playerId);
+    return ResponseEntity.ok(player);
+}
+
+
     /**
      * Modifie un joueur existant dans une équipe.
      * @param playerId l'ID du joueur à modifier
