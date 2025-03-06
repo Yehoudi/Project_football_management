@@ -23,7 +23,7 @@ cd football-management
 ```
 
 ### **3.2 Configuration de la base de données**
-Modifiez le fichier **`application.properties`** pour pointer vers votre base PostgreSQL :
+Modifiez le fichier **`application.properties`** pour pointer vers votre base PostgreSQL locale :
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/nice_football
 spring.datasource.username=postgres
@@ -49,6 +49,8 @@ L'application sera accessible sur **`http://localhost:8080`**.
 
 ## **4. Endpoints de l'API**
 
+Tous les endpoints sont **ouverts** aux tests sans authentification.
+
 ### **4.1 Authentification**
 | Méthode | Endpoint               | Description                       | Authentification |
 |---------|------------------------|-----------------------------------|------------------|
@@ -57,83 +59,52 @@ L'application sera accessible sur **`http://localhost:8080`**.
 ### **4.2 Gestion des équipes**
 | Méthode | Endpoint               | Description                       | Authentification |
 |---------|------------------------|-----------------------------------|------------------|
-| `GET`   | `/api/teams`           | Liste toutes les équipes         | ✅              |
-| `POST`  | `/api/teams`           | Crée une nouvelle équipe         | ✅              |
-| `PUT`   | `/api/teams/{id}`      | Met à jour une équipe            | ✅              |
-| `DELETE`| `/api/teams/{id}`      | Supprime une équipe              | ✅              |
+| `GET`   | `/api/teams`           | Liste toutes les équipes         | ❌              |
+| `POST`  | `/api/teams`           | Crée une nouvelle équipe         | ❌              |
+| `PUT`   | `/api/teams/{id}`      | Met à jour une équipe            | ❌              |
+| `DELETE`| `/api/teams/{id}`      | Supprime une équipe              | ❌              |
 
 ### **4.3 Gestion des joueurs**
 | Méthode | Endpoint               | Description                       | Authentification |
 |---------|------------------------|-----------------------------------|------------------|
-| `GET`   | `/api/players`         | Liste tous les joueurs           | ✅              |
-| `POST`  | `/api/players`         | Ajoute un nouveau joueur         | ✅              |
-| `PUT`   | `/api/players/{id}`    | Met à jour un joueur             | ✅              |
-| `DELETE`| `/api/players/{id}`    | Supprime un joueur               | ✅              |
+| `GET`   | `/api/players`         | Liste tous les joueurs           | ❌              |
+| `POST`  | `/api/players`         | Ajoute un nouveau joueur         | ❌              |
+| `PUT`   | `/api/players/{id}`    | Met à jour un joueur             | ❌              |
+| `DELETE`| `/api/players/{id}`    | Supprime un joueur               | ❌              |
 
 ---
 
 ## **5. Sécurité et Authentification**
 
-L'API est sécurisée avec **Spring Security** et utilise un système d'authentification basé sur **JWT (JSON Web Token)**.
+L'API est **actuellement accessible sans authentification**, mais elle a été conçue pour être sécurisée avec **Spring Security** et **JWT (JSON Web Token)**.
 
-### **5.1 Création d'un utilisateur**
-Avant de pouvoir s'authentifier, un utilisateur doit être créé dans la base de données avec un mot de passe hashé.
-
-#### **1. Générer un mot de passe hashé**
+Si vous souhaitez activer la sécurité, vous pouvez **modifier le fichier `SecurityConfig.java`** en remplaçant :
 ```java
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-public class PasswordHasher {
-    public static void main(String[] args) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String rawPassword = "votreMotDePasse";
-        String hashedPassword = encoder.encode(rawPassword);
-        System.out.println("Hashed Password: " + hashedPassword);
-    }
-}
+.anyRequest().permitAll()
 ```
-Remplacez `"votreMotDePasse"` par le mot de passe souhaité, puis exécutez ce code pour obtenir sa version hashée.
-
-#### **2. Ajouter l'utilisateur dans la base**
-```sql
-INSERT INTO users (username, password, enabled) VALUES ('yehoudi', '$2a$10$exempleDeHash', true);
-INSERT INTO user_roles (user_id, roles) VALUES (1, 'USER');
+par :
+```java
+.requestMatchers("/api/auth/**").permitAll()
+.anyRequest().authenticated()
 ```
-Assurez-vous que l'ID de l'utilisateur correspond bien au `user_id` dans `user_roles`.
+Cela forcera l'authentification pour tous les endpoints sauf `/api/auth/login`.
 
 ---
 
-### **5.2 Authentification via JWT**
-Pour récupérer un **token JWT**, effectuez une requête **POST** sur `/api/auth/login` avec le corps suivant :
-```json
-{
-    "username": "yehoudi",
-    "password": "votreMotDePasse"
-}
+## **6. Test en ligne via Postman et OpenAPI**
+L’API peut être testée directement en ligne via **Postman** ou en accédant aux endpoints depuis un navigateur.
+
+Lien vers l’API déployée :
+```url
+https://project-football-management-gs3y.onrender.com
 ```
-Si les informations sont correctes, un **token JWT** sera renvoyé dans la réponse.
 
----
-
-### **5.3 Accès aux endpoints sécurisés**
-Une fois le token récupéré, ajoutez-le aux requêtes des endpoints protégés via l’en-tête **Authorization** :
-```http
-Authorization: Bearer VOTRE_TOKEN
+Lien vers l'interface **OpenAPI (Swagger UI)** pour tester les endpoints en ligne :
+```url
+https://project-football-management-gs3y.onrender.com/swagger-ui/index.html
 ```
-Exemple avec **Postman** :
-1. Aller dans **Headers**  
-2. Ajouter un **Authorization** avec la valeur :  
-   ```
-   Bearer VOTRE_TOKEN
-   ```
-3. Envoyer la requête à un endpoint sécurisé (`/api/teams` par exemple)
 
----
-
-## **6. Notes Importantes**
-- Tous les endpoints sont sécurisés sauf `/api/auth/login`.
-- Sans un **JWT valide**, les requêtes aux endpoints protégés renverront un **403 Forbidden**.
-- Assurez-vous que la base de données contient des utilisateurs et rôles valides avant de tester.
+Les utilisateurs peuvent tester tous les endpoints en ligne sans authentification.
 
 ---
 
@@ -144,4 +115,3 @@ Les contributions sont les bienvenues ! Forkez le projet et soumettez une PR.
 
 ## **8. Auteurs**
 - **Yehoudi Vincent**
-
